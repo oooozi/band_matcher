@@ -49,12 +49,19 @@ def sort_time_list(base_schedule: list, people: list, session_weight: dict) -> l
 
 
 # 자동 스케줄링 with 인원 겹침 제거
-
-def assign_schedule(time_list: list, person_role: dict, rooms: int) -> dict:
+def assign_schedule(time_list: list, person_role: dict, rooms: int, sort_by="count_first") -> dict:
     schedule = defaultdict(list)  # time -> list of (song, count, weight)
     assigned = set()  # (person, time) 중복 방지용
+    
+    # 정렬 기준 파라미터 (여러 기준 중 골라서 적용 가능)
+    if sort_by == "count_first":
+        sort_key = lambda x: (x[0], -x[2], -x[3])  # 시간, 인원수, 가중치 (기본)
+    elif sort_by == "weight_first":
+        sort_key = lambda x: (x[0], -x[3], -x[2])  # 시간, 가중치, 인원수
+    else:
+        sort_key = lambda x: (x[0], x[1])  # 시간, 곡 이름순 (방어용: 다른 단어 넣으면 적용됨)
 
-    for time, song, count, weight in sorted(time_list, key=lambda x: (x[0], -x[3])):
+    for time, song, count, weight in sorted(time_list, key=sort_key):
         if len(schedule[time]) >= rooms:
             continue
 
