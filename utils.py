@@ -72,3 +72,46 @@ def assign_schedule(time_list: list, person_role: dict, rooms: int) -> dict:
                     assigned.add((person, time))
 
     return dict(schedule)
+
+
+# schedule에서 시간별 곡들을 가중치 내림차순으로 정렬
+def sort_schedule(schedule: dict) -> dict:
+    sorted_schedule = {}
+
+    for time, song_list in schedule.items():
+        sorted_list = sorted(song_list, key=lambda x: x[2], reverse=True)
+        sorted_schedule[time] = sorted_list
+
+    return sorted_schedule
+
+
+# 어느 시간에 어떤 곡에 누가 참여하고 불참하는지 return하는 함수
+# 이 함수의 결과를 최종적으로 프론트로 보내게 됨!!
+def assign_schedule_participant(
+    schedule: dict,
+    person_role: dict,
+    persons_availability: dict
+) -> dict:
+    schedule_participant = {}
+
+    for time in sorted(schedule):
+        schedule_participant[time] = []
+
+        for song, _, _ in schedule[time]:
+            participants = []
+            absentees = []
+
+            for person, roles in person_role.items():
+                for s, session in roles:
+                    if s == song:
+                        entry = f"{person}({session})"
+                        if time in persons_availability.get(person, []):
+                            participants.append(entry)
+                        else:
+                            absentees.append(entry)
+
+            schedule_participant[time].append({
+                song: [participants, absentees] # 리스트[0] -> 참여자, 리스트[1] -> 불참자
+            })
+
+    return schedule_participant
