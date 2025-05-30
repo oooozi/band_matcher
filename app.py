@@ -7,27 +7,23 @@ app = Flask(__name__)
 def home():
     return "Flask 서버가 정상 작동 중입니다!"
 
-# 전역 변수: 세션 데이터를 저장하는 딕셔너리
-song_sessions = {}
 
+# mock_data를 불러와서 전역변수로 저장
+# 백엔드 로직 확인 후 -> 전역변수 없애고, 프론트로부터 POST받아 저장하는는 코드 작성해야 함
+from mock_data import (
+    load_song_sessions,
+    load_persons_availability,
+    load_base_schedule,
+    load_session_weight
+)
 
-# 프론트로부터 곡별 세션 데이터 받는 엔드포인트
-@app.route('/upload_song_sessions', methods=['POST'])
-def upload_song_sessions():
-    global song_sessions
+song_sessions = load_song_sessions()
+persons_availability = load_persons_availability()
+base_schedule = load_base_schedule()
+session_weight = load_session_weight()
 
-    # 요청으로부터 JSON 데이터 받기
-    data = request.get_json()
-
-    if not data:
-        return jsonify({'error': 'JSON 데이터가 없습니다.'}), 400
-
-    # 받은 데이터를 song_sessions에 저장
-    song_sessions = data
-    print("받은 세션 데이터:", song_sessions)  # 서버 콘솔 출력용
-
-    return jsonify({'status': 'success', 'received': song_sessions}), 200
-
+# 방 개수를 전역변수로 저장
+rooms = 3
 
 
 # 이 파일 실행할 때 Flask 서버 실행하는 코드

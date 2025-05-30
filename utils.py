@@ -27,7 +27,7 @@ def make_people(person_role: dict) -> list:
 
 # 공통되는 시간w/가중치 찾기
 from collections import defaultdict
-def Time_Find_weighted(base_schedule: list, people: list, session_weight: dict) -> list:
+def sort_time_list(base_schedule: list, people: list, session_weight: dict) -> list:
 
     result = []
 
@@ -46,3 +46,29 @@ def Time_Find_weighted(base_schedule: list, people: list, session_weight: dict) 
     
     # result -> (시간, 곡, 인원수, 가중치) 튜플을 저장하는 리스트
     return result
+
+
+# 자동 스케줄링 with 인원 겹침 제거
+
+def assign_schedule(time_list: list, person_role: dict, rooms: int) -> dict:
+    schedule = defaultdict(list)  # time -> list of (song, count, weight)
+    assigned = set()  # (person, time) 중복 방지용
+
+    for time, song, count, weight in sorted(time_list, key=lambda x: (x[0], -x[3])):
+        if len(schedule[time]) >= rooms:
+            continue
+
+        conflict = False
+        for person, roles in person_role.items():
+            if (song, _) in roles:
+                if (person, time) in assigned:
+                    conflict = True
+                    break
+
+        if not conflict:
+            schedule[time].append((song, count, weight))
+            for person, roles in person_role.items():
+                if (song, _) in roles:
+                    assigned.add((person, time))
+
+    return dict(schedule)
