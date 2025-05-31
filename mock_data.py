@@ -2,35 +2,35 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-# 파일 경로 설정
-DATA_DIR = Path.cwd() / "mock_data"
-SONG_SESSIONS_FILE = DATA_DIR / "song_sessions.json"
-PERSONS_AVAILABILITY_FILE = DATA_DIR / "persons_availability.json"
-BASE_SCHEDULE_FILE = DATA_DIR / "base_schedule.json"
-SESSION_WEIGHT_FILE = DATA_DIR / "session_weight.json"
+import json
+from datetime import datetime
+from pathlib import Path
 
-# 곡별 세션 정보 불러오기
-def load_song_sessions() -> dict:
-    with open(SONG_SESSIONS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
 
-# 사람별 가능한 시간 불러오기 (문자열 → datetime 변환)
-def load_persons_availability() -> dict:
-    with open(PERSONS_AVAILABILITY_FILE, "r", encoding="utf-8") as f:
-        raw = json.load(f)
-        return {
+#mock_data/{case_name}/ 하위의 4가지 JSON을 한 번에 불러오는 함수
+def load_mock_case(case_name: str) -> dict:
+    base_path = Path(__file__).parent / "mock_data" / case_name
+
+    with open(base_path / "song_sessions.json", encoding="utf-8") as f:
+        song_sessions = json.load(f)
+
+    with open(base_path / "persons_availability.json", encoding="utf-8") as f:
+        persons_availability = {
             name: [datetime.strptime(t, "%Y-%m-%d %H:%M") for t in times]
-            for name, times in raw.items()
+            for name, times in json.load(f).items()
         }
 
-# 기준 스케줄 불러오기 (문자열 → datetime 변환)
-def load_base_schedule() -> list[datetime]:
-    with open(BASE_SCHEDULE_FILE, "r", encoding="utf-8") as f:
-        times = json.load(f)
-        return [datetime.strptime(t, "%Y-%m-%d %H:%M") for t in times]
+    with open(base_path / "base_schedule.json", encoding="utf-8") as f:
+        base_schedule = [datetime.strptime(t, "%Y-%m-%d %H:%M") for t in json.load(f)]
 
-# 세션별 가중치 불러오기
-def load_session_weight() -> dict:
-    with open(SESSION_WEIGHT_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with open(base_path / "session_weight.json", encoding="utf-8") as f:
+        session_weight = json.load(f)
+
+    return {
+        "song_sessions": song_sessions,
+        "persons_availability": persons_availability,
+        "base_schedule": base_schedule,
+        "session_weight": session_weight,
+    }
+
 

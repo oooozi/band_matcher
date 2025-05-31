@@ -29,7 +29,7 @@ def make_people(person_role: dict) -> list:
 from collections import defaultdict
 def sort_time_list(base_schedule: list, people: list, session_weight: dict) -> list:
 
-    result = []
+    time_list = []
 
     for time in base_schedule:
         song_info = defaultdict(lambda: {'인원 수': 0, '가중치 합': 0})
@@ -42,10 +42,10 @@ def sort_time_list(base_schedule: list, people: list, session_weight: dict) -> l
 
         # song_info가 비어 있지 않으면 리스트에 튜플로 추가
         for song, info in song_info.items():
-            result.append((time, song, info['인원 수'], info['가중치 합']))
+            time_list.append((time, song, info['인원 수'], info['가중치 합']))
     
-    # result -> (시간, 곡, 인원수, 가중치) 튜플을 저장하는 리스트
-    return result
+    # time_list -> (시간, 곡, 인원수, 가중치) 튜플을 저장하는 리스트
+    return time_list
 
 
 # 자동 스케줄링 with 인원 겹침 제거
@@ -93,7 +93,6 @@ def sort_schedule(schedule: dict) -> dict:
 
 
 # 어느 시간에 어떤 곡에 누가 참여하고 불참하는지 return하는 함수
-# 이 함수의 결과를 최종적으로 프론트로 보내게 됨!!
 def assign_schedule_participant(
     schedule: dict,
     person_role: dict,
@@ -122,3 +121,27 @@ def assign_schedule_participant(
             })
 
     return schedule_participant
+
+
+# schedule_participant에서, 각 시간당 불참자가 최소인 곡을 배정
+# 프론트로 보내서 바로 시각화할 수 있도록 결과 포맷 지정
+# 프론트에서는 각 시간마다 곡이 배정된 타임테이블 형식으로 시각화하고,
+# 클릭 등을 통해 각 시간마다 참여자/불참자를 확인할 수 있음음
+def summarize_for_timetable(schedule_participant: dict) -> dict:
+    timetable = {}
+
+    for time, entries in schedule_participant.items():
+        best_song = None
+        min_absent = float("inf")
+        best_pair = [[], []]  # [participants, absentees]
+
+        for entry in entries:
+            for song, (participants, absentees) in entry.items():
+                if len(absentees) < min_absent:
+                    min_absent = len(absentees)
+                    best_song = song
+                    best_pair = [participants, absentees]
+
+        timetable[time] = (best_song, best_pair)
+
+    return timetable

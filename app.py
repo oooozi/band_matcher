@@ -1,4 +1,15 @@
 from flask import Flask, request, jsonify
+from utils import (
+    make_person_role,
+    make_people,
+    sort_time_list,
+    assign_schedule,
+    assign_schedule_participant,
+    summarize_for_timetable
+)
+from datetime import datetime
+import os
+
 
 app = Flask(__name__)
 
@@ -7,23 +18,69 @@ app = Flask(__name__)
 def home():
     return "Flask 서버가 정상 작동 중입니다!"
 
+# mock data 테스트용 플래그 (True면 mock_data로 실행됨)
+USE_MOCK = os.getenv("USE_MOCK", "False") == "True"
 
-# mock_data를 불러와서 전역변수로 저장
-# 백엔드 로직 확인 후 -> 전역변수 없애고, 프론트로부터 POST받아 저장하는는 코드 작성해야 함
-from mock_data import (
-    load_song_sessions,
-    load_persons_availability,
-    load_base_schedule,
-    load_session_weight
-)
+if USE_MOCK:
+    from mock_data import load_mock_case
+    
+    data = load_mock_case("case1")
+    song_sessions = data["song_sessions"]
+    persons_availability = data["persons_availability"]
+    base_schedule = data["base_schedule"]
+    session_weight = data["session_weight"]
 
-song_sessions = load_song_sessions()
-persons_availability = load_persons_availability()
-base_schedule = load_base_schedule()
-session_weight = load_session_weight()
 
-# 방 개수를 전역변수로 저장
-rooms = 3
+@app.route("/process", methods=["POST"])
+def process_schedule():
+    try:
+        # 실제 요청 or mock data 분기
+        if USE_MOCK:
+            from mock_data import load_mock_case
+    
+            data = load_mock_case("case1")
+            song_sessions = data["song_sessions"]
+            persons_availability = data["persons_availability"]
+            base_schedule = data["base_schedule"]
+            session_weight = data["session_weight"]
+            rooms = 3
+        else:
+            data = request.get_json()
+            song_sessions = data["song_sessions"]
+            persons_availability = data["persons_availability"]
+            base_schedule = data["base_schedule"]
+            session_weight = data["session_weight"]
+            rooms = data["rooms"]
+        
+        # song_sessions → person_role로 변환환
+        person_role = make_person_role(song_sessions)
+        
+        # people 리스트에 Person 객체 저장
+        people = make_people(person_role,persons_availability)
+        
+        # 시간당 곡, 참여자, 가중치 튜플 리스트 반환
+        time_list = sort_time_list(base_schedule, people, session_weight)
+         
+        # 자동 스케줄링
+        schedule = assign_schedule(time_list, person_role, rooms=rooms)
+
+        # 참여/불참자 매핑
+        participant_info = assign_schedule_participant(schedule, person_role, persons_availability)
+
+        # 불참자 가장 적은 곡만 추출
+        summarized = summarize_for_timetable(participant_info)
+
+        # datetime key → 문자열 변환
+        result = {
+            time.strftime("%Y-%m-%d %H:%M") if hasattr(time, "strftime") else str(time): value
+            for time, value in summarized.items()
+        }
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 
 # 이 파일 실행할 때 Flask 서버 실행하는 코드
