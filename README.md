@@ -21,18 +21,3 @@ python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
----
-
-## 폴더 구조
-band_matcher/
-├── app.py                 # Flask 웹 서버
-├── main.py                # 웹에서 프로그램 실행
-├── models.py              # Person 클래스 등 정의
-├── utils.py               # 정렬, 매칭 등 유틸 함수
-├── data/
-│   ├── song_sessions.json
-│   ├── persons_availability.json
-│   ├── session_weight.json
-│   └── base_schedule.json
-├── mock_data.py           # JSON 로딩 함수들
-└── requirements.txt
