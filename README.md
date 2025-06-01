@@ -21,3 +21,14 @@ python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
+
+---
+
+## 로컬에서 서버 실행하기
+1. VS Code 실행
+2. 터미널(PowerShell)에서 다음 코드 실행
+```
+$env:USE_MOCK="True"
+python app.py
+
+``` 
