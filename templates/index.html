@@ -54,19 +54,17 @@
      }
      table += '</tr>';
  
-     for (const time of times) {
-       table += `<tr><td>${time}</td>`;
-       for (const date of dates) {
-         const key = `${date} ${time}`;
-         if (data[key]) {
-           const [song, [participants, absentees]] = data[key];
-           table += `<td onclick="showDetails('${key}')">${song} (불참:${absentees.length})</td>`;
-         } else {
-           table += `<td>-</td>`;
-         }
+     for (const date of dates) {
+       const key = `${date} ${time}`;
+       if (data[key]) {
+         const [song, [participants, absentees]] = data[key];
+         const total = participants.length + absentees.length;
+         table += `<td onclick="showDetails('${key}')">${song} (${participants.length}/${total})</td>`;
+       } else {
+         table += `<td>-</td>`;
        }
-       table += '</tr>';
      }
+
  
      table += '</table>';
     timetableDiv.innerHTML = table;
