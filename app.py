@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from utils import (
     make_person_role,
     make_people,
@@ -9,7 +9,6 @@ from utils import (
 )
 from datetime import datetime
 import os
-from flask import render_template
 
 
 app = Flask(__name__)
@@ -53,7 +52,7 @@ def process_schedule():
             session_weight = data["session_weight"]
             rooms = data["rooms"]
         
-        # song_sessions → person_role로 변환환
+        # song_sessions → person_role로 변환
         person_role = make_person_role(song_sessions)
         
         # people 리스트에 Person 객체 저장
