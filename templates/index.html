@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>밴드 연습 시간표</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
+    td:hover {
+      background-color: #f0f8ff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>자동 스케줄링 시간표</h1>
+  <button onclick="fetchSchedule()">시간표 불러오기</button>
+  <br><br>
+  <div id="timetable"></div>
+
+ <script>
+   let scheduleData = {};
+ 
+   function fetchSchedule() {
+     fetch("/process", { method: "POST" })
+       .then(res => res.json())
+      .then(data => {
+         scheduleData = data;
+         renderTimetable(data);
+       })
+       .catch(err => alert("에러 발생: " + err));
+   }
+ 
+   function renderTimetable(data) {
+     const timetableDiv = document.getElementById("timetable");
+     timetableDiv.innerHTML = "";
+ 
+    const times = [...new Set(Object.keys(data).map(t => t.split(" ")[1]))].sort();
+     const dates = [...new Set(Object.keys(data).map(t => t.split(" ")[0]))].sort();
+ 
+     let table = '<table><tr><th>시간</th>';
+     for (const date of dates) {
+       table += `<th>${date}</th>`;
+     }
+     table += '</tr>';
+ 
+     for (const time of times) {
+       table += `<tr><td>${time}</td>`;
+       for (const date of dates) {
+         const key = `${date} ${time}`;
+         if (data[key]) {
+           const [song, [participants, absentees]] = data[key];
+           table += `<td onclick="showDetails('${key}')">${song} (불참:${absentees.length})</td>`;
+         } else {
+           table += `<td>-</td>`;
+         }
+       }
+       table += '</tr>';
+     }
+ 
+     table += '</table>';
+    timetableDiv.innerHTML = table;
+   }
+ 
+   function showDetails(time) {
+     const [song, [participants, absentees]] = scheduleData[time];
+     alert(`곡명: ${song}\n\n참여자: ${participants.join(', ')}\n불참자: ${absentees.join(', ')}`);
+   }
+ </script>
+
+</body>
+</html>

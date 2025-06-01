@@ -9,6 +9,7 @@ from utils import (
 )
 from datetime import datetime
 import os
+from flask import render_template
 
 
 app = Flask(__name__)
@@ -56,7 +57,7 @@ def process_schedule():
         person_role = make_person_role(song_sessions)
         
         # people 리스트에 Person 객체 저장
-        people = make_people(person_role,persons_availability)
+        people = make_people(person_role, persons_availability)
         
         # 시간당 곡, 참여자, 가중치 튜플 리스트 반환
         time_list = sort_time_list(base_schedule, people, session_weight)
@@ -80,6 +81,11 @@ def process_schedule():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.route("/web")
+def web_view():
+    return render_template("index.html")
 
 
 

@@ -15,12 +15,14 @@ def make_person_role(song_sessions: dict) -> dict:
 # Person 객체를 people 리스트에 저장
 from models import Person
 
-def make_people(person_role: dict) -> list:
+def make_people(person_role: dict, persons_availability: dict) -> list:
     people = []
     
-    for name, _ in person_role.items():
-        if name not in people:
-            people.append(Person(name))
+    for name, roles in person_role.items():
+        available_time = persons_availability.get(name, [])  # 없으면 빈 리스트
+        person = Person(name, roles, available_time)
+        people.append(person)
+        
     return people
 
 
@@ -67,16 +69,18 @@ def assign_schedule(time_list: list, person_role: dict, rooms: int, sort_by="cou
 
         conflict = False
         for person, roles in person_role.items():
-            if (song, _) in roles:
-                if (person, time) in assigned:
-                    conflict = True
-                    break
+            for role_song, _ in roles:
+                if role_song == song:
+                    if (person, time) in assigned:
+                        conflict = True
+                        break
 
         if not conflict:
             schedule[time].append((song, count, weight))
             for person, roles in person_role.items():
-                if (song, _) in roles:
-                    assigned.add((person, time))
+                for role_song, _ in roles:
+                    if role_song == song:
+                        assigned.add((person, time))
 
     return dict(schedule)
 
