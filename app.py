@@ -8,10 +8,15 @@ from utils import (
 )
 from datetime import datetime
 import os
+from db import create_app
 
 
+app = create_app()
+
+
+'''
 app = Flask(__name__)
-
+'''
 # 기본 경로 확인용
 @app.route('/')
 def home():
