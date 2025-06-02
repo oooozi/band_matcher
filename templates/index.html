@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>밴드 연습 시간표</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
+    td:hover {
+      background-color: #f0f8ff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>자동 스케줄링 시간표</h1>
+  <button onclick="fetchSchedule()">시간표 불러오기</button>
+  <br><br>
+  <div id="timetable"></div>
+
+ <script>
+   let scheduleData = {};
+ 
+   function fetchSchedule() {
+     fetch("/process", { method: "POST" })
+       .then(res => res.json())
+       .then(response => {
+         scheduleData = response.schedule;
+         renderTimetable(response);
+       })
+       .catch(err => alert("에러 발생: " + err));
+   }
+ 
+   function renderTimetable(response) {
+      const data = response.schedule;
+      const maxRooms = response.rooms;
+      const timetableDiv = document.getElementById("timetable");
+      timetableDiv.innerHTML = "";
+
+      const allTimes = Object.keys(data).sort();
+      const times = [...new Set(allTimes.map(t => t.split(" ")[1]))].sort();
+      const dates = [...new Set(allTimes.map(t => t.split(" ")[0]))].sort();
+
+      let table = '<table>';
+
+      // 첫 번째 행: 날짜
+      table += '<tr><th rowspan="2">시간</th>';
+      for (const date of dates) {
+        table += `<th colspan="${maxRooms}">${date}</th>`;
+      }
+      table += '</tr>';
+
+      // 두 번째 행: 합주실
+      table += '<tr>';
+      for (let i = 0; i < dates.length; i++) {
+        for (let r = 1; r <= maxRooms; r++) {
+          table += `<th>합주실${r}</th>`;
+        }
+      }
+      table += '</tr>';
+
+      // 나머지 행: 시간별 정보
+      for (const time of times) {
+        table += `<tr><td>${time}</td>`;
+        for (const date of dates) {
+          const key = `${date} ${time}`;
+          const roomEntries = data[key] || [];
+          for (let r = 0; r < maxRooms; r++) {
+            const cell = roomEntries[r];
+            if (cell) {
+              const song = Object.keys(cell)[0];
+              const [participants, absentees] = cell[song];
+              const total = participants.length + absentees.length;
+              table += `<td onclick="showDetails('${key}', ${r})">${song} (${participants.length}/${total})</td>`;
+            } else {
+              table += `<td>-</td>`;
+            }
+          }
+        }
+        table += '</tr>';
+      }
+
+      table += '</table>';
+      timetableDiv.innerHTML = table;
+    }
+
+    function showDetails(time, roomIdx) {
+      const entries = scheduleData[time];
+      const songObj = entries[roomIdx];
+      const song = Object.keys(songObj)[0];
+      const [participants, absentees] = songObj[song];
+      alert(`곡명: ${song}\n\n참여자: ${participants.join(', ')}\n불참자: ${absentees.join(', ')}`);
+    }
+
+ </script>
+
+</body>
+</html>
