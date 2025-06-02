@@ -5,7 +5,6 @@ from utils import (
     sort_time_list,
     assign_schedule,
     assign_schedule_participant,
-    summarize_for_timetable
 )
 from datetime import datetime
 import os
@@ -67,13 +66,10 @@ def process_schedule():
         # 참여/불참자 매핑
         participant_info = assign_schedule_participant(schedule, person_role, persons_availability)
 
-        # 불참자 가장 적은 곡만 추출
-        summarized = summarize_for_timetable(participant_info)
-
         # datetime key → 문자열 변환
         result = {
             time.strftime("%Y-%m-%d %H:%M") if hasattr(time, "strftime") else str(time): value
-            for time, value in summarized.items()
+            for time, value in participant_info.items()
         }
 
         return jsonify(result), 200
