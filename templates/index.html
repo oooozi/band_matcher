@@ -34,27 +34,22 @@
    function fetchSchedule() {
      fetch("/process", { method: "POST" })
        .then(res => res.json())
-      .then(data => {
-         scheduleData = data;
-         renderTimetable(data);
+       .then(response => {
+         scheduleData = response.schedule;
+         renderTimetable(response);
        })
        .catch(err => alert("에러 발생: " + err));
    }
  
-   function renderTimetable(data) {
+   function renderTimetable(response) {
+      const data = response.schedule;
+      const maxRooms = response.rooms;
       const timetableDiv = document.getElementById("timetable");
       timetableDiv.innerHTML = "";
 
       const allTimes = Object.keys(data).sort();
       const times = [...new Set(allTimes.map(t => t.split(" ")[1]))].sort();
       const dates = [...new Set(allTimes.map(t => t.split(" ")[0]))].sort();
-
-      let maxRooms = 0;
-      for (const key in data) {
-        if (Array.isArray(data[key])) {
-          maxRooms = Math.max(maxRooms, data[key].length);
-        }
-      }
 
       let table = '<table><tr><th>시간</th>';
       for (const date of dates) {

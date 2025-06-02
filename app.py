@@ -72,7 +72,13 @@ def process_schedule():
             for time, value in participant_info.items()
         }
 
-        return jsonify(result), 200
+        return jsonify({
+            "rooms": rooms,
+            "schedule": {
+                time.strftime("%Y-%m-%d %H:%M") if hasattr(time, "strftime") else str(time): value
+                for time, value in participant_info.items()
+            }
+        }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
