@@ -51,10 +51,18 @@
       const times = [...new Set(allTimes.map(t => t.split(" ")[1]))].sort();
       const dates = [...new Set(allTimes.map(t => t.split(" ")[0]))].sort();
 
-      let table = '<table><tr><th>시간</th>';
+      let table = '<table>';
+
+      table += '<tr><th rowspan="2">시간</th>';
       for (const date of dates) {
+        table += `<th colspan="${maxRooms}">${date}</th>`;
+      }
+      table += '</tr>';
+
+      table += '<tr>';
+      for (let i = 0; i < dates.length; i++) {
         for (let r = 1; r <= maxRooms; r++) {
-          table += `<th>${date}<br>합주실${r}</th>`;
+          table += `<th>합주실${r}</th>`;
         }
       }
       table += '</tr>';
